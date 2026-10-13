@@ -1,0 +1,114 @@
+[
+  {
+    "id": "J1",
+    "name": "Central Plaza",
+    "lat": 17.4350,
+    "lng": 78.3820,
+    "type": "Hub",
+    "description": "City center main junction connecting core districts"
+  },
+  {
+    "id": "J2",
+    "name": "North Gate",
+    "lat": 17.4520,
+    "lng": 78.3820,
+    "type": "Arterial",
+    "description": "Northern gateway to northern suburbs and expressway"
+  },
+  {
+    "id": "J3",
+    "name": "South Avenue",
+    "lat": 17.4180,
+    "lng": 78.3810,
+    "type": "Arterial",
+    "description": "Southern corridor leading to residential areas and station"
+  },
+  {
+    "id": "J4",
+    "name": "East Terminal",
+    "lat": 17.4360,
+    "lng": 78.4050,
+    "type": "Terminal",
+    "description": "Eastern transport hub connecting industrial district"
+  },
+  {
+    "id": "J5",
+    "name": "West Circle",
+    "lat": 17.4340,
+    "lng": 78.3600,
+    "type": "Circle",
+    "description": "Western rotary connecting healthcare and university sectors"
+  },
+  {
+    "id": "J6",
+    "name": "Airport Expressway",
+    "lat": 17.4650,
+    "lng": 78.4000,
+    "type": "Expressway",
+    "description": "High-speed interchange serving international airport"
+  },
+  {
+    "id": "J7",
+    "name": "Railway Station",
+    "lat": 17.4200,
+    "lng": 78.4020,
+    "type": "Transit",
+    "description": "Major inter-city rail transit junction"
+  },
+  {
+    "id": "J8",
+    "name": "Hospital Cross",
+    "lat": 17.4480,
+    "lng": 78.3650,
+    "type": "Emergency",
+    "description": "Crucial corridor for regional medical center"
+  },
+  {
+    "id": "J9",
+    "name": "University Hub",
+    "lat": 17.4200,
+    "lng": 78.3620,
+    "type": "Campus",
+    "description": "Academic center and student residential sector"
+  },
+  {
+    "id": "J10",
+    "name": "Industrial Zone",
+    "lat": 17.4600,
+    "lng": 78.4200,
+    "type": "Logistics",
+    "description": "Heavy transport logistics and warehouse district"
+  },
+  {
+    "id": "J11",
+    "name": "Market Square",
+    "lat": 17.4400,
+    "lng": 78.3920,
+    "type": "Commercial",
+    "description": "Dense shopping and commercial marketplace"
+  },
+  {
+    "id": "J12",
+    "name": "IT Tech Park",
+    "lat": 17.4480,
+    "lng": 78.3750,
+    "type": "Business",
+    "description": "High-density software parks and commercial offices"
+  },
+  {
+    "id": "J13",
+    "name": "Metro Central",
+    "lat": 17.4280,
+    "lng": 78.3750,
+    "type": "Transit",
+    "description": "Underground metro interchange junction"
+  },
+  {
+    "id": "J14",
+    "name": "Eco Green Park",
+    "lat": 17.4280,
+    "lng": 78.3920,
+    "type": "Recreation",
+    "description": "Civic center and urban parkway bypass"
+  }
+]

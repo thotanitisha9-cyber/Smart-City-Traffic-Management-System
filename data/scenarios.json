@@ -1,0 +1,31 @@
+{
+  "scenarios": [
+    {
+      "id": 1,
+      "name": "Normal Traffic Flow",
+      "description": "Baseline off-peak urban condition. All roads are open and traffic levels are LOW across the entire network.",
+      "updates": []
+    },
+    {
+      "id": 2,
+      "name": "Peak Hour Arterial Congestion",
+      "description": "Rush hour surge causes heavy congestion on central arterial roads (R01, R03) and northern expressway (R08). Routing engine must dynamically seek perimeter bypass routes.",
+      "updates": [
+        { "road_id": "R01", "traffic_level": "SEVERE", "status": "OPEN" },
+        { "road_id": "R03", "traffic_level": "HIGH", "status": "OPEN" },
+        { "road_id": "R08", "traffic_level": "SEVERE", "status": "OPEN" },
+        { "road_id": "R15", "traffic_level": "HIGH", "status": "OPEN" }
+      ]
+    },
+    {
+      "id": 3,
+      "name": "Emergency Incident & Road Closure",
+      "description": "A major construction emergency completely BLOCKS East Express Corridor (R03) while Central-North Arterial (R01) suffers SEVERE congestion. Dynamic routing must instantly isolate the failed link and divert all traffic through southern/market arterials.",
+      "updates": [
+        { "road_id": "R03", "traffic_level": "SEVERE", "status": "BLOCKED" },
+        { "road_id": "R01", "traffic_level": "SEVERE", "status": "OPEN" },
+        { "road_id": "R14", "traffic_level": "MEDIUM", "status": "OPEN" }
+      ]
+    }
+  ]
+}

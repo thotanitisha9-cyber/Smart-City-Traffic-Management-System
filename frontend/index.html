@@ -1,0 +1,541 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Smart City Traffic Management System | Dynamic Routing PBL</title>
+  <meta name="description" content="Computer Networks PBL: Smart City Traffic Management System Using Dynamic Routing Algorithms (Dijkstra) with real-time congestion rerouting.">
+
+  <!-- Google Fonts -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500;600&family=Outfit:wght@500;600;700;800&display=swap" rel="stylesheet">
+
+  <!-- Font Awesome Icons -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+
+  <!-- Leaflet CSS -->
+  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY=" crossorigin=""/>
+
+  <!-- Custom CSS -->
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+  <!-- Top Navigation Bar -->
+  <header class="app-header">
+    <div class="header-left">
+      <div class="logo-icon">
+        <i class="fa-solid fa-network-wired"></i>
+      </div>
+      <div>
+        <h1 class="app-title">Smart City Traffic Management System</h1>
+        <p class="app-subtitle">Dynamic Routing & Traffic Optimization Engine • Computer Networks PBL</p>
+      </div>
+    </div>
+    <div class="header-right">
+      <span class="badge-status online" id="system-status">
+        <span class="pulse-dot"></span> Backend Active
+      </span>
+      <button class="nav-btn" id="btn-open-concepts">
+        <i class="fa-solid fa-graduation-cap"></i> CN Concepts
+      </button>
+      <button class="nav-btn" id="btn-open-algorithm">
+        <i class="fa-solid fa-code-branch"></i> Dijkstra Algorithm
+      </button>
+      <button class="nav-btn" id="btn-open-routing-table">
+        <i class="fa-solid fa-table-list"></i> Routing Table
+      </button>
+    </div>
+  </header>
+
+  <!-- Metric Statistics Strip -->
+  <section class="stats-strip">
+    <div class="stat-card">
+      <div class="stat-icon icon-nodes"><i class="fa-solid fa-circle-nodes"></i></div>
+      <div class="stat-content">
+        <div class="stat-label">City Junctions (Routers)</div>
+        <div class="stat-value" id="stat-junctions">14</div>
+      </div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-icon icon-links"><i class="fa-solid fa-road"></i></div>
+      <div class="stat-content">
+        <div class="stat-label">Road Segments (Links)</div>
+        <div class="stat-value" id="stat-roads">28</div>
+      </div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-icon icon-congested"><i class="fa-solid fa-triangle-exclamation"></i></div>
+      <div class="stat-content">
+        <div class="stat-label">Congested Roads</div>
+        <div class="stat-value text-warning" id="stat-congested">0</div>
+      </div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-icon icon-blocked"><i class="fa-solid fa-ban"></i></div>
+      <div class="stat-content">
+        <div class="stat-label">Blocked Roads</div>
+        <div class="stat-value text-danger" id="stat-blocked">0</div>
+      </div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-icon icon-factor"><i class="fa-solid fa-chart-line"></i></div>
+      <div class="stat-content">
+        <div class="stat-label">Avg Congestion Factor</div>
+        <div class="stat-value" id="stat-factor">1.0x</div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Main Application Workspace -->
+  <main class="main-workspace">
+    
+    <!-- Left Sidebar: Controls & Simulation -->
+    <aside class="sidebar">
+      
+      <!-- Card: Route Planner -->
+      <div class="panel-card">
+        <div class="panel-header">
+          <i class="fa-solid fa-route panel-icon"></i>
+          <h2>Route Calculation</h2>
+        </div>
+        <div class="panel-body">
+          <div class="form-group">
+            <label for="select-source"><i class="fa-solid fa-location-dot text-emerald"></i> Source Junction (Origin Node)</label>
+            <select id="select-source" class="form-select"></select>
+          </div>
+          <div class="swap-row">
+            <button id="btn-swap-endpoints" class="btn-icon" title="Swap Source and Destination">
+              <i class="fa-solid fa-arrows-up-down"></i>
+            </button>
+          </div>
+          <div class="form-group">
+            <label for="select-destination"><i class="fa-solid fa-flag-checkered text-cyan"></i> Destination Junction (Target Node)</label>
+            <select id="select-destination" class="form-select"></select>
+          </div>
+          <button id="btn-find-route" class="btn-primary">
+            <i class="fa-solid fa-magnifying-glass-location"></i> Find Optimal Route
+          </button>
+        </div>
+      </div>
+
+      <!-- Card: Simulation Scenarios -->
+      <div class="panel-card">
+        <div class="panel-header">
+          <i class="fa-solid fa-sliders panel-icon"></i>
+          <h2>Traffic Scenarios</h2>
+        </div>
+        <div class="panel-body">
+          <p class="section-desc">Instantly simulate realistic urban network conditions:</p>
+          <div class="scenario-buttons">
+            <button class="btn-scenario" data-scenario="1" id="btn-scenario-1">
+              <i class="fa-solid fa-shield-halved text-emerald"></i>
+              <span>Scenario 1: Normal Flow</span>
+            </button>
+            <button class="btn-scenario" data-scenario="2" id="btn-scenario-2">
+              <i class="fa-solid fa-truck-monster text-warning"></i>
+              <span>Scenario 2: Peak Congestion</span>
+            </button>
+            <button class="btn-scenario" data-scenario="3" id="btn-scenario-3">
+              <i class="fa-solid fa-triangle-exclamation text-danger"></i>
+              <span>Scenario 3: Road Closure</span>
+            </button>
+            <button class="btn-scenario btn-reset" id="btn-reset-simulation">
+              <i class="fa-solid fa-rotate-left"></i>
+              <span>Reset Simulation</span>
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <!-- Card: Traffic Control Panel -->
+      <div class="panel-card">
+        <div class="panel-header">
+          <i class="fa-solid fa-traffic-light panel-icon"></i>
+          <h2>Traffic Control / Simulation</h2>
+        </div>
+        <div class="panel-body">
+          <div class="form-group">
+            <label for="select-road"><i class="fa-solid fa-road"></i> Select Road to Modify</label>
+            <select id="select-road" class="form-select"></select>
+          </div>
+          <div class="form-group">
+            <label for="select-traffic-level"><i class="fa-solid fa-gauge-high"></i> Traffic Congestion Level</label>
+            <select id="select-traffic-level" class="form-select">
+              <option value="LOW">LOW (Multiplier: 1.0x)</option>
+              <option value="MEDIUM">MEDIUM (Multiplier: 1.5x)</option>
+              <option value="HIGH">HIGH (Multiplier: 2.5x)</option>
+              <option value="SEVERE">SEVERE (Multiplier: 4.0x)</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label><i class="fa-solid fa-toggle-on"></i> Road Status</label>
+            <div class="status-toggle-group">
+              <label class="radio-label">
+                <input type="radio" name="road-status-radio" value="OPEN" checked id="radio-status-open">
+                <span class="radio-custom open"><i class="fa-solid fa-lock-open"></i> OPEN</span>
+              </label>
+              <label class="radio-label">
+                <input type="radio" name="road-status-radio" value="BLOCKED" id="radio-status-blocked">
+                <span class="radio-custom blocked"><i class="fa-solid fa-lock"></i> BLOCKED</span>
+              </label>
+            </div>
+          </div>
+          <button id="btn-apply-traffic" class="btn-secondary">
+            <i class="fa-solid fa-bolt"></i> Apply Traffic Update
+          </button>
+        </div>
+      </div>
+
+    </aside>
+
+    <!-- Center/Right Area: Map, Results, Comparison & Charts -->
+    <section class="content-area">
+      
+      <!-- Network Map Container -->
+      <div class="map-card">
+        <div class="map-toolbar">
+          <div class="map-title">
+            <i class="fa-solid fa-map-location-dot"></i>
+            <span>Interactive City Network Graph</span>
+          </div>
+          <div class="map-legend">
+            <span class="legend-item"><span class="legend-badge badge-low"></span> Low (1.0x)</span>
+            <span class="legend-item"><span class="legend-badge badge-medium"></span> Medium (1.5x)</span>
+            <span class="legend-item"><span class="legend-badge badge-high"></span> High (2.5x)</span>
+            <span class="legend-item"><span class="legend-badge badge-severe"></span> Severe (4.0x)</span>
+            <span class="legend-item"><span class="legend-badge badge-blocked"></span> Blocked (∞)</span>
+            <span class="legend-item"><span class="legend-badge badge-active-route"></span> Optimal Route</span>
+          </div>
+        </div>
+        <div id="map-container"></div>
+      </div>
+
+      <!-- Results & Comparison Grid -->
+      <div class="results-grid">
+        
+        <!-- Optimal Route Result Card -->
+        <div class="panel-card result-panel" id="card-route-result">
+          <div class="panel-header">
+            <i class="fa-solid fa-compass panel-icon"></i>
+            <h2>Optimal Route Details</h2>
+            <span class="badge-status badge-success" id="result-status-badge">Ready</span>
+          </div>
+          <div class="panel-body">
+            
+            <div class="route-summary-box">
+              <div class="route-path-header">Calculated Optimal Path:</div>
+              <div class="route-path-chain" id="result-path-chain">
+                <span class="placeholder-text">Select Source & Destination and click "Find Optimal Route"</span>
+              </div>
+            </div>
+
+            <div class="metrics-row">
+              <div class="metric-item">
+                <span class="metric-label">Total Distance</span>
+                <span class="metric-value" id="result-distance">-- km</span>
+              </div>
+              <div class="metric-item">
+                <span class="metric-label">Estimated Travel Time</span>
+                <span class="metric-value" id="result-time">-- min</span>
+              </div>
+              <div class="metric-item">
+                <span class="metric-label">Dynamic Cost Metric</span>
+                <span class="metric-value highlight" id="result-cost">--</span>
+              </div>
+              <div class="metric-item">
+                <span class="metric-label">Roads / Hops</span>
+                <span class="metric-value" id="result-roads-count">--</span>
+              </div>
+              <div class="metric-item">
+                <span class="metric-label">Traffic Condition</span>
+                <span class="metric-value" id="result-traffic-summary">--</span>
+              </div>
+            </div>
+
+            <!-- Route Step-by-Step Breakdown -->
+            <div class="route-steps-container">
+              <div class="steps-title"><i class="fa-solid fa-list-ol"></i> Step-by-Step Link Traversal:</div>
+              <div class="steps-table-wrapper">
+                <table class="data-table" id="table-steps">
+                  <thead>
+                    <tr>
+                      <th>#</th>
+                      <th>Road Name</th>
+                      <th>Link (u → v)</th>
+                      <th>Distance</th>
+                      <th>Speed</th>
+                      <th>Traffic</th>
+                      <th>Dynamic Cost</th>
+                      <th>Est. Time</th>
+                    </tr>
+                  </thead>
+                  <tbody id="tbody-steps">
+                    <tr><td colspan="8" class="text-center text-muted">No route calculated yet.</td></tr>
+                  </tbody>
+                </table>
+              </div>
+            </div>
+
+          </div>
+        </div>
+
+        <!-- Dynamic Rerouting Comparison Card -->
+        <div class="panel-card comparison-panel" id="card-comparison">
+          <div class="panel-header">
+            <i class="fa-solid fa-code-compare panel-icon"></i>
+            <h2>Dynamic Rerouting Analysis (Before vs After)</h2>
+            <span class="badge-status" id="comparison-badge">Awaiting Change</span>
+          </div>
+          <div class="panel-body">
+            
+            <div class="comparison-comparison-grid">
+              <div class="comparison-box before-box">
+                <div class="comp-title"><i class="fa-solid fa-clock-rotate-left"></i> Before Traffic Change</div>
+                <div class="comp-route" id="comp-before-route">--</div>
+                <div class="comp-meta">
+                  <div><span>Distance:</span> <strong id="comp-before-dist">--</strong></div>
+                  <div><span>Dynamic Cost:</span> <strong id="comp-before-cost">--</strong></div>
+                  <div><span>Est. Time:</span> <strong id="comp-before-time">--</strong></div>
+                </div>
+              </div>
+
+              <div class="comparison-box after-box">
+                <div class="comp-title"><i class="fa-solid fa-circle-check text-cyan"></i> After Traffic Change (New Route)</div>
+                <div class="comp-route" id="comp-after-route">--</div>
+                <div class="comp-meta">
+                  <div><span>Distance:</span> <strong id="comp-after-dist">--</strong></div>
+                  <div><span>Dynamic Cost:</span> <strong id="comp-after-cost">--</strong></div>
+                  <div><span>Est. Time:</span> <strong id="comp-after-time">--</strong></div>
+                </div>
+              </div>
+            </div>
+
+            <div class="reason-box" id="comp-reason-box">
+              <div class="reason-title"><i class="fa-solid fa-circle-info"></i> Algorithmic Rerouting Rationale:</div>
+              <p id="comp-reason-text">Make a traffic change or apply a scenario to see live routing convergence and decision rationale.</p>
+            </div>
+
+          </div>
+        </div>
+
+      </div>
+
+      <!-- Chart Card: Traffic Distribution Chart -->
+      <div class="panel-card chart-panel">
+        <div class="panel-header">
+          <i class="fa-solid fa-chart-pie panel-icon"></i>
+          <h2>Real-Time Network Traffic Distribution</h2>
+        </div>
+        <div class="panel-body chart-body">
+          <div class="chart-wrapper">
+            <canvas id="traffic-chart"></canvas>
+          </div>
+          <div class="chart-info">
+            <h3>Dynamic Edge Weight Formula</h3>
+            <div class="formula-box">
+              <code>Dynamic Cost = Distance (km) × Traffic Multiplier</code>
+            </div>
+            <ul class="formula-legend">
+              <li><span class="badge-low-dot"></span> <strong>LOW:</strong> Multiplier 1.0x (Standard flow)</li>
+              <li><span class="badge-med-dot"></span> <strong>MEDIUM:</strong> Multiplier 1.5x (Moderate queuing)</li>
+              <li><span class="badge-high-dot"></span> <strong>HIGH:</strong> Multiplier 2.5x (Heavy bottleneck)</li>
+              <li><span class="badge-severe-dot"></span> <strong>SEVERE:</strong> Multiplier 4.0x (Severe congestion)</li>
+              <li><span class="badge-blocked-dot"></span> <strong>BLOCKED:</strong> Cost = ∞ (Link pruned / avoided)</li>
+            </ul>
+          </div>
+        </div>
+      </div>
+
+    </section>
+
+  </main>
+
+  <!-- MODAL 1: Computer Networks Concepts -->
+  <div class="modal-overlay" id="modal-concepts">
+    <div class="modal-dialog">
+      <div class="modal-header">
+        <div class="modal-title"><i class="fa-solid fa-network-wired text-cyan"></i> Computer Networks Concepts & Analogy</div>
+        <button class="modal-close" data-close="modal-concepts">&times;</button>
+      </div>
+      <div class="modal-body">
+        <p class="modal-intro">
+          This project maps smart city traffic engineering directly to fundamental <strong>Computer Networks</strong> protocols, routing algorithms, and performance metrics. Use this during your PBL presentation and viva:
+        </p>
+
+        <div class="analogy-table-wrapper">
+          <table class="data-table">
+            <thead>
+              <tr>
+                <th>Smart City Traffic Domain</th>
+                <th>Computer Networks Domain</th>
+                <th>Networking Equivalent & Purpose</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td><strong>City Junction (J1...J14)</strong></td>
+                <td><strong>Network Node / Router</strong></td>
+                <td>Interconnection point responsible for packet forwarding and path selection.</td>
+              </tr>
+              <tr>
+                <td><strong>Road Segment (R01...R28)</strong></td>
+                <td><strong>Transmission Link (Cable / Channel)</strong></td>
+                <td>Physical media with finite capacity (bandwidth) and latency.</td>
+              </tr>
+              <tr>
+                <td><strong>Road Distance (km)</strong></td>
+                <td><strong>Propagation Delay / Base Link Metric</strong></td>
+                <td>Static cost metric proportional to physical link length.</td>
+              </tr>
+              <tr>
+                <td><strong>Traffic Congestion Multiplier</strong></td>
+                <td><strong>Queuing Delay & Link Congestion</strong></td>
+                <td>Dynamic cost factor accounting for buffer queuing delays during bursty traffic.</td>
+              </tr>
+              <tr>
+                <td><strong>Dynamic Cost ($d \times m$)</strong></td>
+                <td><strong>Composite Link Cost Metric</strong></td>
+                <td>Composite routing metric similar to Cisco EIGRP or dynamic OSPF link metrics.</td>
+              </tr>
+              <tr>
+                <td><strong>Blocked Road (BLOCKED)</strong></td>
+                <td><strong>Link Failure / Line Cut</strong></td>
+                <td>Link marked down; cost set to $\infty$; excluded from shortest path tree.</td>
+              </tr>
+              <tr>
+                <td><strong>Dynamic Rerouting</strong></td>
+                <td><strong>Routing Protocol Convergence</strong></td>
+                <td>Adaptive calculation of loop-free least-cost path upon topology or state update.</td>
+              </tr>
+              <tr>
+                <td><strong>Traffic Update / Scenario</strong></td>
+                <td><strong>Link State Advertisement (LSA)</strong></td>
+                <td>Broadcast update informing routers of changed edge weights.</td>
+              </tr>
+              <tr>
+                <td><strong>Optimal Path Calculation</strong></td>
+                <td><strong>OSPF / IS-IS Routing Engine</strong></td>
+                <td>Dijkstra SPF algorithm calculating least-cost paths across the link-state database.</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+
+        <div class="viva-highlight">
+          <h4><i class="fa-solid fa-lightbulb"></i> Viva Question Highlight:</h4>
+          <p><strong>Q: Why is Dynamic Routing superior to Static Shortest Path Routing?</strong></p>
+          <p><em>A: Static routing uses fixed distances, which leads to heavy packet queuing and bottleneck drops whenever a link gets congested. Dynamic routing monitors real-time link states (traffic density) and recalculates the least-cost path, effectively balancing load across alternative under-utilized channels.</em></p>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- MODAL 2: Dijkstra Routing Algorithm -->
+  <div class="modal-overlay" id="modal-algorithm">
+    <div class="modal-dialog">
+      <div class="modal-header">
+        <div class="modal-title"><i class="fa-solid fa-code-branch text-emerald"></i> Dijkstra's Algorithm Implementation</div>
+        <button class="modal-close" data-close="modal-algorithm">&times;</button>
+      </div>
+      <div class="modal-body">
+        <h3>Algorithm Overview</h3>
+        <p>
+          Dijkstra's Shortest Path Algorithm is a greedy single-source shortest path algorithm that finds the minimal cost route in a graph with non-negative edge weights.
+        </p>
+        
+        <div class="algorithm-steps-box">
+          <ol>
+            <li><strong>Initialization:</strong> Set distance to source node $dist[src] = 0$. For all other vertices $v$, set $dist[v] = \infty$. Initialize predecessor map $prev[v] = \text{null}$.</li>
+            <li><strong>Priority Queue:</strong> Insert $(0, src)$ into a min-heap priority queue.</li>
+            <li><strong>Vertex Selection:</strong> Extract vertex $u$ with minimum tentative distance from the priority queue.</li>
+            <li><strong>Edge Relaxation:</strong> For each neighbor $v$ connected via road $e$:
+              <ul>
+                <li>If $e$ is BLOCKED: skip (edge cost is $\infty$).</li>
+                <li>Compute dynamic edge weight: $W(u, v) = \text{distance} \times \text{multiplier}$.</li>
+                <li>If $dist[u] + W(u, v) < dist[v]$: update $dist[v] = dist[u] + W(u, v)$, record $prev[v] = u$, and push $(dist[v], v)$ into priority queue.</li>
+              </ul>
+            </li>
+            <li><strong>Termination:</strong> Terminate when destination is dequeued or queue is exhausted.</li>
+            <li><strong>Path Reconstruction:</strong> Backtrack from destination to source using $prev$ to form the route.</li>
+          </ol>
+        </div>
+
+        <h3>Python Implementation Snippet</h3>
+        <pre class="code-block"><code>def dijkstra(graph, source, destination):
+    distances = {node: float("inf") for node in graph.nodes}
+    distances[source] = 0.0
+    previous = {node: None for node in graph.nodes}
+    pq = [(0.0, source)]  # (cost, node)
+
+    while pq:
+        current_cost, u = heapq.heappop(pq)
+        if u == destination:
+            break
+        for v, road in graph.get_neighbors(u):
+            if road.status == "BLOCKED":
+                continue  # Avoid severed link
+            dynamic_weight = road.distance_km * road.traffic_factor
+            tentative_cost = current_cost + dynamic_weight
+            if tentative_cost < distances[v]:
+                distances[v] = tentative_cost
+                previous[v] = (u, road)
+                heapq.heappush(pq, (tentative_cost, v))
+
+    return reconstruct_path(previous, source, destination)</code></pre>
+
+        <div class="complexity-strip">
+          <div class="comp-metric"><strong>Time Complexity:</strong> $O((V + E) \log V)$ with Min-Heap Priority Queue</div>
+          <div class="comp-metric"><strong>Space Complexity:</strong> $O(V + E)$ for Adjacency List and Distance Array</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- MODAL 3: Interactive Routing Table Viewer -->
+  <div class="modal-overlay" id="modal-routing-table">
+    <div class="modal-dialog modal-lg">
+      <div class="modal-header">
+        <div class="modal-title"><i class="fa-solid fa-table-list text-cyan"></i> Router Forwarding & Routing Table</div>
+        <button class="modal-close" data-close="modal-routing-table">&times;</button>
+      </div>
+      <div class="modal-body">
+        <div class="table-controls-row">
+          <label for="select-rt-source">Select Router Node:</label>
+          <select id="select-rt-source" class="form-select form-select-inline"></select>
+          <button id="btn-refresh-rt" class="btn-sm"><i class="fa-solid fa-arrows-rotate"></i> Refresh Table</button>
+        </div>
+        <p class="text-muted small">
+          Shows the next-hop router and cumulative dynamic cost for all destination networks from the selected router node:
+        </p>
+        <div class="table-scroll-wrapper">
+          <table class="data-table" id="table-routing-table">
+            <thead>
+              <tr>
+                <th>Destination Node</th>
+                <th>Destination Name</th>
+                <th>Next Hop Router</th>
+                <th>Hops</th>
+                <th>Dynamic Metric</th>
+                <th>Total Distance</th>
+              </tr>
+            </thead>
+            <tbody id="tbody-routing-table">
+              <tr><td colspan="6" class="text-center text-muted">Loading routing table...</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Notification Toast Container -->
+  <div id="toast-container" class="toast-container"></div>
+
+  <!-- Scripts -->
+  <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo=" crossorigin=""></script>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
+  <script src="app.js"></script>
+</body>
+</html>
